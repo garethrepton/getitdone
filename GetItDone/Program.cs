@@ -26,7 +26,7 @@ while (true)
 
     RenderTable(store, viewMode);
 
-    AnsiConsole.MarkupLine("[dim]  [[a]] Add  [[n]] Notes  [[v]] View  [[q]] Quit  [[Enter]] Menu[/]");
+    AnsiConsole.MarkupLine("[dim]  [[a]] Add  [[d]] Done  [[n]] Notes  [[v]] View  [[q]] Quit  [[Enter]] Menu[/]");
     AnsiConsole.WriteLine();
 
     // Check for keyboard shortcut
@@ -35,6 +35,11 @@ while (true)
     if (key.Key == ConsoleKey.A)
     {
         HandleAdd(store);
+        continue;
+    }
+    if (key.Key == ConsoleKey.D)
+    {
+        HandleComplete(store);
         continue;
     }
     if (key.Key == ConsoleKey.N)
@@ -489,6 +494,8 @@ static string FormatDueDate(DateOnly? dueDate, DateOnly today)
 
 static string FormatNotesPreview(string notes, int maxLen)
 {
+    // Split inline numbered items (e.g. "1. foo 2. bar") onto separate lines
+    notes = System.Text.RegularExpressions.Regex.Replace(notes, @"(?<=\S)\s+(?=\d+\.)", "\n");
     var lines = notes.Split('\n', StringSplitOptions.RemoveEmptyEntries);
 
     // Check if notes contain numbered lines (e.g. "1. thing", "2) thing", "1 thing")
@@ -510,16 +517,17 @@ static string FormatNotesPreview(string notes, int maxLen)
         foreach (var line in lines)
         {
             var trimmed = line.TrimStart();
-            // Strip the number prefix
+            // Extract the number prefix
             var i = 0;
             while (i < trimmed.Length && char.IsDigit(trimmed[i])) i++;
+            var number = trimmed[..i];
             if (i > 0 && i < trimmed.Length && (trimmed[i] is '.' or ')'))
                 trimmed = trimmed[(i + 1)..].TrimStart();
             else if (i > 0 && i < trimmed.Length && trimmed[i] == ' ')
                 trimmed = trimmed[(i + 1)..].TrimStart();
 
             if (trimmed.Length > 0)
-                bullets.Add($"[dim italic]  - {Markup.Escape(trimmed)}[/]");
+                bullets.Add($"[dim italic]  {number}. {Markup.Escape(trimmed)}[/]");
         }
         return string.Join("\n", bullets);
     }

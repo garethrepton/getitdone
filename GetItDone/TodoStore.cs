@@ -2,8 +2,10 @@ using System.Text.Json;
 
 public class TodoStore
 {
-    public static readonly string FilePath = Path.Combine(
-        AppContext.BaseDirectory, "todos.json");
+    private static readonly string AppFolder = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "GetItDone");
+
+    public static readonly string FilePath = Path.Combine(AppFolder, "todos.json");
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -24,6 +26,7 @@ public class TodoStore
 
     public void Save()
     {
+        Directory.CreateDirectory(AppFolder);
         var json = JsonSerializer.Serialize(Items, JsonOptions);
         File.WriteAllText(FilePath, json);
     }

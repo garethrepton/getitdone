@@ -32,7 +32,7 @@ GetItDone/
 
 ## Data
 
-Todos are stored in `todos.json` next to the executable. Format:
+Todos are stored in `~/GetItDone/todos.json` (user profile directory). Format:
 
 ```json
 [{"id":1,"text":"Buy milk","done":false}]
