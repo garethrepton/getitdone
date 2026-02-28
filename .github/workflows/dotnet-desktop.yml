@@ -8,10 +8,6 @@ on:
 
 jobs:
   build:
-    strategy:
-      matrix:
-        configuration: [Debug, Release]
-
     runs-on: ubuntu-latest
 
     steps:
@@ -27,4 +23,29 @@ jobs:
       run: dotnet restore
 
     - name: Build
-      run: dotnet build --no-restore --configuration ${{ matrix.configuration }}
+      run: dotnet build --no-restore --configuration Release
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rid: [win-x64, linux-x64, osx-x64]
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+
+    - name: Publish
+      run: dotnet publish GetItDone/GetItDone.csproj --configuration Release --runtime ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true --output ./publish
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: GetItDone-${{ matrix.rid }}
+        path: ./publish
